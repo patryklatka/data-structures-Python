@@ -1,105 +1,121 @@
 class Node:
-    def __init__(self, key, value, left = None, right = None):
+    def __init__(self, key, value):
         self.key = key
         self.value = value
-        self.left = left
-        self.right = right
+        self.left = None
+        self.right = None
 
 
 class BST:
     def __init__(self):
         self.root = None
-
-
-    def search(self, key):
-        return self.__searchRecu(key, self.root)
-
     
-    def __searchRecu(self, key, currentNode):
+
+    def search(self, key, currentNode = None):
+        if currentNode is None:
+            currentNode = self.root
+
         if currentNode is None:
             return None
 
-        if key > currentNode.key:
-            return self.__searchRecu(key, currentNode.right)
-
-        if key < currentNode.key:
-            return self.__searchRecu(key, currentNode.left)
-        
-        else:
+        if currentNode.key == key:
             return currentNode.value
+        
+        if key < currentNode.key:
+            return self.search(key, currentNode.left)
+        
+        if key > currentNode.key:
+            return self.search(key, currentNode.right)
 
-
+    
     def insert(self, key, value):
-        self.root = self.__insert(key, value, self.root)
+        if self.root is None:
+            self.root = Node(key, value)
+            return
+        else:
+            self.root = self.__insertRecu(key, value, self.root)
+            return
 
 
-    def __insert(self, key, value, parentNode):
+    def __insertRecu(self, key, value, parentNode):
         if parentNode is None:
             return Node(key, value)
-
+        
         if key < parentNode.key:
-            parentNode.left = self.__insert(key, value, parentNode.left)
+            parentNode.left = self.__insertRecu(key, value, parentNode.left)
             return parentNode
         
-        if key > parentNode.key:
-            parentNode.right = self.__insert(key, value, parentNode.right)    
-            return parentNode   
-        
+        elif key > parentNode.key:
+            parentNode.right = self.__insertRecu(key, value, parentNode.right)
+            return parentNode
+
         else:
             parentNode.value = value
             return parentNode
 
 
-    def delete(self, key):
-        self.__delete(key, self.root)
-
-
-    def __delete(self, key, node):
-        if node is None:
+    def delete(self, key, currentNode = None):
+        if currentNode is None:
+            currentNode = self.root
+        
+        if currentNode is None:
             return None
+        
+        if key < currentNode.key:
+            currentNode.left = self.delete(key, currentNode.left)
+            return currentNode
+        
+        if key > currentNode.key:
+            currentNode.right = self.delete(key, currentNode.right)
+            return currentNode
+        
+        if key == currentNode.key:
 
-        if node.key > key:
-            node.left = self.__delete(key, node.left)
-            return node
+            if currentNode.left is None and currentNode.right is None:
+                return None
 
-        elif node.key < key:
-            node.right = self.__delete(key, node.right)
-            return node
+            if currentNode.left is None and currentNode.right is not None:
+                return currentNode.right
 
-        if node.left is None and node.right is None:
-            return None
-
-        elif node.left is None and node.right is not None:
-            return node.right
-
-        elif node.right is None and node.left is not None:
-            return node.left
-
-        else:
-            parents = node
-            successor = node.right
-
-            while successor.left is not None:
-                parents = successor
-                successor = successor.left
-
-            if parents != node:
-                parents.left = successor.right
+            if currentNode.left is not None and currentNode.right is None:
+                return currentNode.left
 
             else:
-                parents.right = successor.right
-            node.key = successor.key
+                deleteNode = currentNode
+                succesorNode = currentNode.right
 
-            return node
+                while succesorNode.left is not None:
+                    succesorNode = succesorNode.left
+                
+                currentNode.key = succesorNode.key
+                currentNode.value = succesorNode.value
+
+                currentNode.right = self.delete(succesorNode.key, currentNode.right)
+
+            return currentNode
 
 
-    def height(self, node):
-        if node is None:
+    def print(self, node):
+        if node is not None:
+            self.print(node.left)
+            print(node.key, node.value, end=',')
+            self.print(node.right)
+
+
+    def height(self):
+        if self.root is None:
             return 0
         else:
-            left_ = self.height(node.left)
-            right_ = self.height(node.right)
-            return 1 + max(left_, right_)
+            return self.__height(self.root)
+
+    def __height(self, node):
+        if node is None:
+            return 0
+
+        else:
+            on_left = self.__height(node.left)
+            on_right = self.__height(node.right)
+            return max(on_left, on_right) + 1
 
 
     def print_tree(self):
@@ -118,42 +134,47 @@ class BST:
             self.__print_tree(node.left, lvl+5)
 
 
-    def tree_list(self, node):
-        if node is not None:
-            self.tree_list(node.left)
-            print(node.key, node.value, end=',')
-            self.tree_list(node.right)
-
-
-
-
-
-
 def main():
-    bst = BST()
+    treeBST = BST()
+
     keys = [50, 15, 62, 5, 20, 58, 91, 3, 8, 37, 60, 24]
+
     value = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+
     for i in range(len(keys)):
-        bst.insert(keys[i], value[i])
-    bst.print_tree()
-    bst.tree_list(bst.root)
+        treeBST.insert(keys[i], value[i])
+
+    treeBST.print_tree()
+
+    treeBST.print(treeBST.root)
     print()
-    print(bst.search(24))
-    bst.insert(20, 'AA')
-    bst.insert(6, 'M')
-    bst.delete(62)
-    bst.insert(59, 'N')
-    bst.insert(100, 'P')
-    bst.delete(8)
-    bst.delete(15)
-    bst.insert(55, 'R')
-    bst.delete(50)
-    bst.delete(5)
-    bst.delete(24)
-    print(bst.height(bst.root))
-    bst.tree_list(bst.root)
+
+    print(treeBST.search(24))
+
+    treeBST.insert(20, 'AA')
+    treeBST.insert(6, 'M')
+
+    treeBST.delete(62)
+
+    treeBST.insert(59, 'N')
+    treeBST.insert(100, 'P')
+
+    treeBST.delete(8)
+    treeBST.delete(15)
+
+    treeBST.insert(55, 'R')
+
+    treeBST.delete(50)
+    treeBST.delete(5)
+    treeBST.delete(24)
+
+    print(treeBST.height())
+
+    treeBST.print(treeBST.root)
+
     print()
-    bst.print_tree()
+    
+    treeBST.print_tree()
 
 
 if __name__ == '__main__':
